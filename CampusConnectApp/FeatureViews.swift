@@ -208,8 +208,8 @@ struct EventFeedView: View {
                 }
             }
             .sheet(isPresented: $showingNewEventSheet) {
-                NewEventSheet(selectedCategory: $selectedCategory) { title, description, date, category in
-                    store.createEvent(title: title, description: description, date: date, category: category)
+                NewEventSheet(selectedCategory: $selectedCategory) { title, description, date, location, capacity, category in
+                    store.createEvent(title: title, description: description, date: date, location: location, maxCapacity: capacity, category: category)
                 }
             }
         }
@@ -246,11 +246,13 @@ struct NewEventSheet: View {
     @Binding var selectedCategory: EventCategory?
     @State private var title = ""
     @State private var description = ""
+    @State private var location = ""
+    @State private var maxCapacity = 50
     @State private var selectedDate = Date()
     @State private var selectedEventCategory: EventCategory = .academic
     @State private var validationMessage: String?
     
-    var onSave: (String, String, Date, EventCategory) -> Void
+    var onSave: (String, String, Date, String, Int, EventCategory) -> Void
     
     var body: some View {
         NavigationStack {
@@ -325,7 +327,7 @@ struct NewEventSheet: View {
                             TextField("Enter event title", text: $title)
                                 .font(AppTheme.Typography.body)
                                 .padding(AppTheme.Spacing.md)
-                                .background(Color(red: 0.98, green: 0.98, blue: 0.98))
+                                .background(AppTheme.surface)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(selectedEventCategory.color.opacity(0.3), lineWidth: 1.5)
@@ -343,12 +345,48 @@ struct NewEventSheet: View {
                                 .font(AppTheme.Typography.body)
                                 .lineLimit(3...8)
                                 .padding(AppTheme.Spacing.md)
-                                .background(Color(red: 0.98, green: 0.98, blue: 0.98))
+                                .background(AppTheme.surface)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(selectedEventCategory.color.opacity(0.3), lineWidth: 1.5)
                                 )
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        
+                        // Location Input
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text("Location")
+                                .font(AppTheme.Typography.subheadline)
+                                .foregroundStyle(AppTheme.textPrimary)
+                            TextField("e.g. Library Room 3B", text: $location)
+                                .font(AppTheme.Typography.body)
+                                .padding(AppTheme.Spacing.md)
+                                .background(AppTheme.surface)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(selectedEventCategory.color.opacity(0.3), lineWidth: 1.5)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        
+                        // Capacity Input
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text("Max Capacity: \(maxCapacity)")
+                                .font(AppTheme.Typography.subheadline)
+                                .foregroundStyle(AppTheme.textPrimary)
+                            
+                            Stepper(value: $maxCapacity, in: 2...1000, step: 1) {
+                                Text("Capacity")
+                            }
+                            .padding(AppTheme.Spacing.md)
+                            .background(AppTheme.surface)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(selectedEventCategory.color.opacity(0.3), lineWidth: 1.5)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
                         .padding(.horizontal, AppTheme.Spacing.lg)
                         
@@ -360,7 +398,7 @@ struct NewEventSheet: View {
                             DatePicker("", selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
                                 .datePickerStyle(.compact)
                                 .padding(AppTheme.Spacing.md)
-                                .background(Color(red: 0.98, green: 0.98, blue: 0.98))
+                                .background(AppTheme.surface)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(selectedEventCategory.color.opacity(0.3), lineWidth: 1.5)
@@ -392,8 +430,12 @@ struct NewEventSheet: View {
                                 validationMessage = "Description is required"
                                 return
                             }
+                            guard !location.trimmingCharacters(in: .whitespaces).isEmpty else {
+                                validationMessage = "Location is required"
+                                return
+                            }
                             validationMessage = nil
-                            onSave(title, description, selectedDate, selectedEventCategory)
+                            onSave(title, description, selectedDate, location, maxCapacity, selectedEventCategory)
                             selectedCategory = selectedEventCategory
                             dismiss()
                         } label: {
@@ -925,6 +967,8 @@ struct LostFoundView: View {
     @EnvironmentObject private var store: MockDataStore
     @State private var filterLostOnly = false
 
+    @State private var showingNewLostItemSheet = false
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -942,6 +986,23 @@ struct LostFoundView: View {
                             .foregroundStyle(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, AppTheme.Spacing.lg)
+                            
+                        Button {
+                            showingNewLostItemSheet = true
+                        } label: {
+                            HStack(spacing: AppTheme.Spacing.sm) {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Post Item")
+                            }
+                            .font(AppTheme.Typography.subheadline)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, AppTheme.Spacing.lg)
+                            .padding(.vertical, AppTheme.Spacing.md)
+                            .background(AppTheme.primary)
+                            .clipShape(Capsule())
+                            .shadow(color: AppTheme.primary.opacity(0.3), radius: 8, x: 0, y: 4)
+                        }
+                        .padding(.top, AppTheme.Spacing.md)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -961,12 +1022,27 @@ struct LostFoundView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Picker("Filter", selection: $filterLostOnly) {
-                        Text("All").tag(false)
-                        Text("Lost").tag(true)
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Picker("Filter", selection: $filterLostOnly) {
+                            Text("All").tag(false)
+                            Text("Lost").tag(true)
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 120)
+                        
+                        Button {
+                            showingNewLostItemSheet = true
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(AppTheme.primary)
+                        }
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 160)
+                }
+            }
+            .sheet(isPresented: $showingNewLostItemSheet) {
+                NewLostItemSheet { title, description, location, isFound in
+                    store.createLostItem(title: title, description: description, location: location, isFound: isFound)
                 }
             }
         }
@@ -1013,6 +1089,163 @@ struct LostItemCard: View {
             }
         }
         .appCard(elevated: true)
+    }
+}
+
+// New Lost Item Creation Sheet
+struct NewLostItemSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @State private var title = ""
+    @State private var description = ""
+    @State private var location = ""
+    @State private var isFound = false
+    @State private var validationMessage: String?
+    
+    var onSave: (String, String, String, Bool) -> Void
+    
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                AppTheme.background.ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: AppTheme.Spacing.lg) {
+                        // Header
+                        VStack(spacing: AppTheme.Spacing.xs) {
+                            Text("Post Item")
+                                .font(AppTheme.Typography.title2)
+                                .foregroundStyle(AppTheme.textPrimary)
+                            Text("Help the community find lost items")
+                                .font(AppTheme.Typography.footnote)
+                                .foregroundStyle(AppTheme.textSecondary)
+                        }
+                        .padding(.top, AppTheme.Spacing.lg)
+                        
+                        // Type Selection
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                            Text("Item Status")
+                                .font(AppTheme.Typography.subheadline)
+                                .foregroundStyle(AppTheme.textPrimary)
+                            
+                            Picker("Status", selection: $isFound) {
+                                Text("Lost").tag(false)
+                                Text("Found").tag(true)
+                            }
+                            .pickerStyle(.segmented)
+                            .padding(4)
+                            .background(AppTheme.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        
+                        // Title Input
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text("Item Name")
+                                .font(AppTheme.Typography.subheadline)
+                                .foregroundStyle(AppTheme.textPrimary)
+                            TextField("e.g. Blue Water Bottle", text: $title)
+                                .font(AppTheme.Typography.body)
+                                .padding(AppTheme.Spacing.md)
+                                .background(AppTheme.surface)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(isFound ? AppTheme.success.opacity(0.3) : AppTheme.warning.opacity(0.3), lineWidth: 1.5)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        
+                        // Description Input
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text("Description")
+                                .font(AppTheme.Typography.subheadline)
+                                .foregroundStyle(AppTheme.textPrimary)
+                            TextField("Describe the item...", text: $description, axis: .vertical)
+                                .font(AppTheme.Typography.body)
+                                .lineLimit(3...8)
+                                .padding(AppTheme.Spacing.md)
+                                .background(AppTheme.surface)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(isFound ? AppTheme.success.opacity(0.3) : AppTheme.warning.opacity(0.3), lineWidth: 1.5)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        
+                        // Location Input
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text("Location")
+                                .font(AppTheme.Typography.subheadline)
+                                .foregroundStyle(AppTheme.textPrimary)
+                            TextField(isFound ? "Where did you find it?" : "Where did you lose it?", text: $location)
+                                .font(AppTheme.Typography.body)
+                                .padding(AppTheme.Spacing.md)
+                                .background(AppTheme.surface)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(isFound ? AppTheme.success.opacity(0.3) : AppTheme.warning.opacity(0.3), lineWidth: 1.5)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        
+                        // Validation Message
+                        if let message = validationMessage {
+                            HStack(spacing: AppTheme.Spacing.xs) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundStyle(AppTheme.error)
+                                Text(message)
+                                    .font(AppTheme.Typography.footnote)
+                                    .foregroundStyle(AppTheme.error)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, AppTheme.Spacing.lg)
+                        }
+                        
+                        // Submit Button
+                        Button {
+                            guard !title.trimmingCharacters(in: .whitespaces).isEmpty else {
+                                validationMessage = "Title is required"
+                                return
+                            }
+                            guard !description.trimmingCharacters(in: .whitespaces).isEmpty else {
+                                validationMessage = "Description is required"
+                                return
+                            }
+                            guard !location.trimmingCharacters(in: .whitespaces).isEmpty else {
+                                validationMessage = "Location is required"
+                                return
+                            }
+                            validationMessage = nil
+                            onSave(title, description, location, isFound)
+                            dismiss()
+                        } label: {
+                            Text(isFound ? "Post Found Item" : "Post Lost Item")
+                                .font(AppTheme.Typography.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, AppTheme.Spacing.md)
+                                .background(isFound ? AppTheme.success : AppTheme.warning)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .shadow(color: (isFound ? AppTheme.success : AppTheme.warning).opacity(0.3), radius: 8, x: 0, y: 4)
+                        }
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        .padding(.top, AppTheme.Spacing.sm)
+                        .padding(.bottom, AppTheme.Spacing.xl)
+                    }
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundStyle(AppTheme.textSecondary)
+                }
+            }
+        }
     }
 }
 
@@ -1374,76 +1607,126 @@ struct ProfileView: View {
     @EnvironmentObject private var store: MockDataStore
     @State private var showingNewChat = false
     @State private var showingLogoutConfirmation = false
+    @State private var showingSettings = false
+    @State private var showingHobbySheet = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: AppTheme.Spacing.xl) {
                     if let user = store.currentUser {
-                        // Profile Header
-                        VStack(spacing: AppTheme.Spacing.md) {
+                        // Modern Profile Header
+                        ZStack(alignment: .bottom) {
+                            // Background Cover
+                            LinearGradient(
+                                colors: [AppTheme.primary, AppTheme.primaryLight],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                            .frame(height: 140)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.lg, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            )
+                            .shadow(color: AppTheme.primary.opacity(0.3), radius: 10, x: 0, y: 5)
+                            
+                            // Avatar Overlay
                             ZStack {
                                 Circle()
-                                    .fill(AppTheme.primary.opacity(0.1))
-                                    .frame(width: 100, height: 100)
+                                    .fill(AppTheme.surface)
+                                    .frame(width: 108, height: 108)
+                                    .shadow(color: AppTheme.Shadow.md, radius: 4, x: 0, y: 2)
+                                
                                 Image(systemName: user.avatarName)
-                                    .font(.system(size: 50))
+                                    .font(.system(size: 54))
                                     .foregroundStyle(AppTheme.primary)
+                                    .frame(width: 100, height: 100)
+                                    .background(AppTheme.primary.opacity(0.1))
+                                    .clipShape(Circle())
                             }
-                            .shadow(color: AppTheme.Shadow.md, radius: 8, x: 0, y: 4)
-                            
-                            VStack(spacing: AppTheme.Spacing.xs) {
-                                Text(user.name)
-                                    .font(AppTheme.Typography.title2)
-                                    .foregroundStyle(AppTheme.textPrimary)
-                                Text(user.email)
-                                    .font(AppTheme.Typography.body)
-                                    .foregroundStyle(AppTheme.textSecondary)
-                                Text("\(user.course) • Year \(user.year)")
-                                    .font(AppTheme.Typography.subheadline)
-                                    .foregroundStyle(AppTheme.textTertiary)
-                            }
+                            .offset(y: 50)
                         }
-                        .padding(.top, AppTheme.Spacing.lg)
+                        .padding(.bottom, 50)
+                        
+                        // User Info
+                        VStack(spacing: AppTheme.Spacing.xs) {
+                            Text(user.name)
+                                .font(AppTheme.Typography.title2)
+                                .foregroundStyle(AppTheme.textPrimary)
+                            
+                            Text(user.email)
+                                .font(AppTheme.Typography.body)
+                                .foregroundStyle(AppTheme.textSecondary)
+                            
+                            HStack(spacing: AppTheme.Spacing.sm) {
+                                Label(user.course, systemImage: "book.fill")
+                                Text("•")
+                                Text("Year \(user.year)")
+                            }
+                            .font(AppTheme.Typography.subheadline)
+                            .foregroundStyle(AppTheme.textTertiary)
+                            .padding(.top, AppTheme.Spacing.xs)
+                        }
+                        
+                        // Stats Row
+                        HStack(spacing: AppTheme.Spacing.xl) {
+                            ProfileStat(value: "\(user.interests.count)", label: "Interests")
+                            Divider().frame(height: 30)
+                            ProfileStat(value: "\(store.threads.filter { $0.participantIDs.contains(user.id) }.count)", label: "Chats")
+                            Divider().frame(height: 30)
+                            ProfileStat(value: "\(store.events.filter { $0.interestedUserIDs.contains(user.id) }.count)", label: "Events")
+                        }
+                        .padding(.vertical, AppTheme.Spacing.md)
+                        .padding(.horizontal, AppTheme.Spacing.xl)
+                        .background(AppTheme.surface)
+                        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+                        .shadow(color: AppTheme.Shadow.sm, radius: 4, x: 0, y: 2)
                         
                         // Interests Section
                         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-                            Text("Interests")
-                                .font(AppTheme.Typography.headline)
-                                .foregroundStyle(AppTheme.textPrimary)
+                            HStack {
+                                Label("Interests & Hobbies", systemImage: "star.fill")
+                                    .font(AppTheme.Typography.headline)
+                                    .foregroundStyle(AppTheme.textPrimary)
+                                Spacer()
+                                Button {
+                                    showingHobbySheet = true
+                                } label: {
+                                    Image(systemName: "pencil.circle.fill")
+                                        .font(.title3)
+                                        .foregroundStyle(AppTheme.primary)
+                                }
+                            }
                             FlexibleTagView(tags: user.interests)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .appCard(elevated: true)
                         
-                        // Action Buttons
+                        // Menu Options
                         VStack(spacing: AppTheme.Spacing.md) {
-                            Button {
+                            ProfileMenuButton(icon: "bubble.left.and.bubble.right.fill", title: "Message a Classmate", subtitle: "Start a new conversation") {
                                 showingNewChat = true
-                            } label: {
-                                HStack {
-                                    Image(systemName: "bubble.left.and.bubble.right.fill")
-                                    Text("Message a Classmate")
-                                        .font(AppTheme.Typography.headline)
-                                }
-                                .frame(maxWidth: .infinity)
                             }
-                            .primaryButtonStyle()
+                            
+                            ProfileMenuButton(icon: "gearshape.fill", title: "Settings", subtitle: "Preferences & account") {
+                                showingSettings = true
+                            }
                             
                             Button {
                                 showingLogoutConfirmation = true
                             } label: {
                                 HStack {
-                                    Image(systemName: "arrow.right.square")
+                                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                                        .font(.system(size: 16, weight: .semibold))
                                     Text("Log Out")
                                         .font(AppTheme.Typography.headline)
+                                    Spacer()
                                 }
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, AppTheme.Spacing.md)
-                                .background(AppTheme.error)
-                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md, style: .continuous))
-                                .shadow(color: AppTheme.error.opacity(0.3), radius: 8, x: 0, y: 4)
+                                .foregroundStyle(AppTheme.error)
+                                .padding(AppTheme.Spacing.md)
+                                .background(AppTheme.error.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
                             }
                         }
                     }
@@ -1452,22 +1735,86 @@ struct ProfileView: View {
             }
             .background(AppTheme.background.ignoresSafeArea())
             .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingNewChat) {
                 NewChatSheet { user in
                     _ = store.createOrFetchThread(with: user.id)
                 }
             }
+            .sheet(isPresented: $showingHobbySheet) {
+                AddHobbySheet()
+            }
+            .navigationDestination(isPresented: $showingSettings) {
+                SettingsView()
+            }
             .alert("Log Out", isPresented: $showingLogoutConfirmation) {
-                Button("Cancel", role: .cancel) { }
                 Button("Log Out", role: .destructive) {
                     withAnimation {
                         store.logout()
                     }
                 }
+                Button("Cancel", role: .cancel) { }
             } message: {
-                Text("Are you sure you want to log out?")
+                Text("Are you sure you want to log out of your account?")
             }
+        }
+    }
+}
+
+// Helper Components for Profile
+struct ProfileStat: View {
+    let value: String
+    let label: String
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(AppTheme.Typography.title3)
+                .foregroundStyle(AppTheme.primary)
+            Text(label)
+                .font(AppTheme.Typography.caption)
+                .foregroundStyle(AppTheme.textSecondary)
+        }
+    }
+}
+
+struct ProfileMenuButton: View {
+    let icon: String
+    let title: String
+    let subtitle: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: AppTheme.Spacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.primary.opacity(0.1))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: icon)
+                        .font(.system(size: 18))
+                        .foregroundStyle(AppTheme.primary)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(AppTheme.Typography.bodyBold)
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Text(subtitle)
+                        .font(AppTheme.Typography.caption)
+                        .foregroundStyle(AppTheme.textSecondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(AppTheme.textTertiary)
+            }
+            .padding(AppTheme.Spacing.md)
+            .background(AppTheme.surface)
+            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+            .shadow(color: AppTheme.Shadow.sm, radius: 4, x: 0, y: 2)
         }
     }
 }
@@ -1515,4 +1862,155 @@ struct FlexibleView<Data: RandomAccessCollection, Content: View>: View where Dat
 #Preview {
     MainTabView()
         .environmentObject(MockDataStore())
+}
+
+struct SettingsView: View {
+    @AppStorage("notificationsEnabled") private var notificationsEnabled = true
+    @AppStorage("darkModeEnabled") private var darkModeEnabled = false
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        Form {
+            Section("Preferences") {
+                Toggle("Notifications", isOn: $notificationsEnabled)
+                    .tint(AppTheme.primary)
+                Toggle("Dark Mode", isOn: $darkModeEnabled)
+                    .tint(AppTheme.primary)
+            }
+            
+            Section("Account") {
+                NavigationLink("Privacy Policy") {
+                    Text("Privacy Policy Content")
+                        .navigationTitle("Privacy Policy")
+                }
+                NavigationLink("Terms of Service") {
+                    Text("Terms of Service Content")
+                        .navigationTitle("Terms of Service")
+                }
+            }
+            
+            Section {
+                Button(role: .destructive) {
+                    // Delete account action
+                } label: {
+                    Text("Delete Account")
+                }
+            }
+        }
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct AddHobbySheet: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject private var store: MockDataStore
+    @State private var newHobby = ""
+    @State private var suggestedHobbies = [
+        "Photography", "Gaming", "Coding", "Reading", "Music", 
+        "Hiking", "Cooking", "Travel", "Art", "Sports"
+    ]
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Input Area
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                    Text("Add New Interest")
+                        .font(AppTheme.Typography.subheadline)
+                        .foregroundStyle(AppTheme.textSecondary)
+                    
+                    HStack {
+                        TextField("e.g. Photography", text: $newHobby)
+                            .font(AppTheme.Typography.body)
+                            .padding(AppTheme.Spacing.md)
+                            .background(AppTheme.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppTheme.Radius.md)
+                                    .stroke(AppTheme.outline, lineWidth: 1)
+                            )
+                        
+                        Button {
+                            addHobby(newHobby)
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title)
+                                .foregroundStyle(newHobby.isEmpty ? AppTheme.textTertiary : AppTheme.primary)
+                        }
+                        .disabled(newHobby.isEmpty)
+                    }
+                }
+                .padding(AppTheme.Spacing.lg)
+                .background(AppTheme.background)
+                
+                List {
+                    Section("Suggested Interests") {
+                        ForEach(suggestedHobbies, id: \.self) { hobby in
+                            HStack {
+                                Text(hobby)
+                                    .foregroundStyle(AppTheme.textPrimary)
+                                Spacer()
+                                if let user = store.currentUser, user.interests.contains(hobby) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(AppTheme.success)
+                                } else {
+                                    Button {
+                                        addHobby(hobby)
+                                    } label: {
+                                        Image(systemName: "plus")
+                                            .foregroundStyle(AppTheme.primary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if let user = store.currentUser, !user.interests.isEmpty {
+                        Section("Your Interests") {
+                            ForEach(user.interests, id: \.self) { interest in
+                                HStack {
+                                    Text(interest)
+                                        .foregroundStyle(AppTheme.textPrimary)
+                                    Spacer()
+                                    Button(role: .destructive) {
+                                        store.removeInterest(interest)
+                                    } label: {
+                                        Image(systemName: "minus.circle.fill")
+                                            .foregroundStyle(AppTheme.error)
+                                    }
+                                }
+                            }
+                            .onDelete { indexSet in
+                                indexSet.forEach { index in
+                                    let interest = user.interests[index]
+                                    store.removeInterest(interest)
+                                }
+                            }
+                        }
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+                .background(AppTheme.background)
+            }
+            .navigationTitle("Edit Interests")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundStyle(AppTheme.primary)
+                }
+            }
+        }
+    }
+    
+    private func addHobby(_ hobby: String) {
+        let trimmed = hobby.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        store.addInterest(trimmed)
+        newHobby = ""
+    }
 }

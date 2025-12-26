@@ -16,7 +16,7 @@ enum AppTheme {
     static let secondary = Color(hex: "0EA5E9") // Sky 500
     static let accent = Color(hex: "F59E0B") // Amber 500
     
-    static let background = Color(hex: "F8FAFC") // Slate 50
+    static let background = Color(hex: "F1F5F9") // Slate 100 - Slightly darker for better contrast
     static let surface = Color.white
     static let card = Color.white
     

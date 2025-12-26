@@ -15,10 +15,13 @@ struct ContentView: View {
         Group {
             if store.currentUser == nil {
                 AuthView()
+                    .transition(.move(edge: .leading))
             } else {
                 MainTabView()
+                    .transition(.move(edge: .trailing))
             }
         }
+        .animation(.easeInOut, value: store.currentUser)
     }
 }
 
@@ -30,27 +33,41 @@ struct AuthView: View {
     @State private var password = ""
     @State private var course = ""
     @State private var year = 1
-    @State private var selectedAvatar = "person.crop.circle.fill"
+    @State private var selectedAvatar = "person.fill"
     @State private var selectedImage: UIImage?
     @State private var showImagePicker = false
     @State private var useCustomImage = false
     @State private var validationMessage: String?
+    @State private var isSocialLoggingIn = false
     
     private let avatarOptions = [
-        "person.crop.circle.fill",
-        "person.circle.fill",
-        "person.crop.square.fill",
-        "person.fill",
-        "person.2.fill",
-        "person.3.fill"
+        "person.fill", // Generic/Male
+        "person.circle.fill" // Generic/Female
     ]
 
     var body: some View {
         NavigationStack {
             ZStack {
-                // Professional Background
-                AppTheme.softGradient
-                    .ignoresSafeArea()
+                // Professional Animated Background
+                GeometryReader { proxy in
+                    ZStack {
+                        AppTheme.background.ignoresSafeArea()
+                        
+                        // Decorative Blobs
+                        Circle()
+                            .fill(AppTheme.primary.opacity(0.1))
+                            .frame(width: 300, height: 300)
+                            .blur(radius: 60)
+                            .offset(x: -100, y: -150)
+                        
+                        Circle()
+                            .fill(AppTheme.secondary.opacity(0.1))
+                            .frame(width: 300, height: 300)
+                            .blur(radius: 60)
+                            .offset(x: 100, y: 150)
+                    }
+                }
+                .ignoresSafeArea()
                 
                 ScrollView {
                     VStack(spacing: 0) {
@@ -59,25 +76,26 @@ struct AuthView: View {
                             Image("login_img")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(height: 200)
+                                .frame(height: 180)
+                                .shadow(color: AppTheme.Shadow.lg, radius: 20, x: 0, y: 10)
                             
                             // Welcome Message
                             VStack(spacing: AppTheme.Spacing.xs) {
-                                Text(isRegister ? "Create Account" : "Welcome Back!")
+                                Text(isRegister ? "Join CampusConnect" : "Welcome Back")
                                     .font(AppTheme.Typography.largeTitle)
                                     .foregroundStyle(AppTheme.textPrimary)
                                 
-                                Text(isRegister ? "Join the campus community" : "Log in to your existing account")
+                                Text(isRegister ? "Connect with your classmates today" : "Sign in to continue your journey")
                                     .font(AppTheme.Typography.body)
                                     .foregroundStyle(AppTheme.textSecondary)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, AppTheme.Spacing.lg)
                             }
                         }
-                        .padding(.top, AppTheme.Spacing.xxl)
-                        .padding(.bottom, AppTheme.Spacing.xl)
+                        .padding(.top, AppTheme.Spacing.xl)
+                        .padding(.bottom, AppTheme.Spacing.lg)
 
-                        // Form Section
+                        // Form Card
                         VStack(spacing: AppTheme.Spacing.lg) {
                             // Mode Toggle
                             HStack(spacing: 0) {
@@ -86,14 +104,15 @@ struct AuthView: View {
                                         isRegister = false
                                     }
                                 } label: {
-                                    Text("LOGIN")
+                                    Text("Login")
                                         .font(AppTheme.Typography.subheadline)
                                         .fontWeight(.bold)
-                                        .foregroundStyle(isRegister ? AppTheme.textSecondary : .white)
+                                        .foregroundStyle(isRegister ? AppTheme.textSecondary : AppTheme.primary)
                                         .frame(maxWidth: .infinity)
-                                        .padding(.vertical, AppTheme.Spacing.sm)
-                                        .background(isRegister ? Color.clear : AppTheme.primary)
+                                        .padding(.vertical, 12)
+                                        .background(isRegister ? Color.clear : .white)
                                         .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+                                        .shadow(color: isRegister ? .clear : AppTheme.Shadow.sm, radius: 4, x: 0, y: 2)
                                 }
                                 
                                 Button {
@@ -101,20 +120,20 @@ struct AuthView: View {
                                         isRegister = true
                                     }
                                 } label: {
-                                    Text("REGISTER")
+                                    Text("Register")
                                         .font(AppTheme.Typography.subheadline)
                                         .fontWeight(.bold)
-                                        .foregroundStyle(isRegister ? .white : AppTheme.textSecondary)
+                                        .foregroundStyle(isRegister ? AppTheme.primary : AppTheme.textSecondary)
                                         .frame(maxWidth: .infinity)
-                                        .padding(.vertical, AppTheme.Spacing.sm)
-                                        .background(isRegister ? AppTheme.primary : Color.clear)
+                                        .padding(.vertical, 12)
+                                        .background(isRegister ? .white : Color.clear)
                                         .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+                                        .shadow(color: isRegister ? AppTheme.Shadow.sm : .clear, radius: 4, x: 0, y: 2)
                                 }
                             }
                             .padding(4)
-                            .background(AppTheme.surface)
+                            .background(AppTheme.background)
                             .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.lg))
-                            .shadow(color: AppTheme.Shadow.sm, radius: 4, x: 0, y: 2)
                             .padding(.horizontal, AppTheme.Spacing.lg)
                             
                             // Register Fields
@@ -282,7 +301,7 @@ struct AuthView: View {
                             // Social Login Section
                             if !isRegister {
                                 VStack(spacing: AppTheme.Spacing.md) {
-                                    HStack {
+                                    HStack(alignment: .center) {
                                         Rectangle()
                                             .fill(AppTheme.outline)
                                             .frame(height: 1)
@@ -290,6 +309,7 @@ struct AuthView: View {
                                             .font(AppTheme.Typography.caption)
                                             .foregroundStyle(AppTheme.textSecondary)
                                             .padding(.horizontal, AppTheme.Spacing.sm)
+                                            .layoutPriority(1)
                                         Rectangle()
                                             .fill(AppTheme.outline)
                                             .frame(height: 1)
@@ -301,13 +321,19 @@ struct AuthView: View {
                                             icon: "f",
                                             text: "Facebook",
                                             color: Color(hex: "1877F2")
-                                        )
+                                        ) {
+                                            isSocialLoggingIn = true
+                                            store.socialLogin(provider: "Facebook")
+                                        }
                                         
                                         SocialLoginButton(
                                             icon: "G",
                                             text: "Google",
                                             color: Color(hex: "DB4437")
-                                        )
+                                        ) {
+                                            isSocialLoggingIn = true
+                                            store.socialLogin(provider: "Google")
+                                        }
                                     }
                                     .padding(.horizontal, AppTheme.Spacing.lg)
                                 }
@@ -338,6 +364,24 @@ struct AuthView: View {
                 }
                 .scrollIndicators(.hidden)
                 .safeAreaPadding(.top)
+                
+                if isSocialLoggingIn {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: AppTheme.Spacing.md) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .tint(.white)
+                        Text("Logging in...")
+                            .font(AppTheme.Typography.headline)
+                            .foregroundStyle(.white)
+                    }
+                    .padding(AppTheme.Spacing.xl)
+                    .background(AppTheme.surface.opacity(0.2)) // Glassmorphism
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.lg))
+                }
             }
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showImagePicker) {
@@ -537,11 +581,10 @@ private struct SocialLoginButton: View {
     let icon: String
     let text: String
     let color: Color
+    let action: () -> Void
     
     var body: some View {
-        Button {
-            // Handle social login
-        } label: {
+        Button(action: action) {
             HStack(spacing: AppTheme.Spacing.sm) {
                 Text(icon)
                     .font(.system(size: 20, weight: .bold))

@@ -53,11 +53,60 @@ final class MockDataStore: ObservableObject {
         sessionUserId = newUser.id.uuidString
     }
 
-    func logout() {
-        currentUser = nil
-        sessionUserId = ""
+    func socialLogin(provider: String) {
+        // Simulate network delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            let email = "user@\(provider.lowercased()).com"
+            
+            if let existingUser = self.users.first(where: { $0.email == email }) {
+                self.currentUser = existingUser
+                self.sessionUserId = existingUser.id.uuidString
+            } else {
+                let newUser = User(
+                    id: UUID(),
+                    name: "\(provider) User",
+                    email: email,
+                    password: "social-login-password",
+                    course: "General Studies",
+                    year: 1,
+                    avatarName: "person.crop.circle.badge.checkmark",
+                    interests: ["Social Networking"]
+                )
+                self.users.append(newUser)
+                self.currentUser = newUser
+                self.sessionUserId = newUser.id.uuidString
+            }
+        }
     }
 
+    func logout() {
+        // Ensure UI updates on main thread
+        DispatchQueue.main.async {
+            self.currentUser = nil
+            self.sessionUserId = ""
+        }
+    }
+
+    func addInterest(_ interest: String) {
+        guard let userID = currentUser?.id, let idx = users.firstIndex(where: { $0.id == userID }) else { return }
+        var user = users[idx]
+        if !user.interests.contains(interest) {
+            user.interests.append(interest)
+            users[idx] = user
+            currentUser = user
+        }
+    }
+
+    func removeInterest(_ interest: String) {
+        guard let userID = currentUser?.id, let idx = users.firstIndex(where: { $0.id == userID }) else { return }
+        var user = users[idx]
+        if let interestIdx = user.interests.firstIndex(of: interest) {
+            user.interests.remove(at: interestIdx)
+            users[idx] = user
+            currentUser = user
+        }
+    }
+    
     func toggleInterest(for eventID: UUID) {
         guard let userID = currentUser?.id else { return }
         guard let idx = events.firstIndex(where: { $0.id == eventID }) else { return }
@@ -100,13 +149,15 @@ final class MockDataStore: ObservableObject {
         events[idx] = event
     }
     
-    func createEvent(title: String, description: String, date: Date, category: EventCategory) {
+    func createEvent(title: String, description: String, date: Date, location: String, maxCapacity: Int, category: EventCategory) {
         guard let userID = currentUser?.id else { return }
         let newEvent = Event(
             id: UUID(),
             title: title,
             description: description,
             date: date,
+            location: location,
+            maxCapacity: maxCapacity,
             category: category,
             interestedUserIDs: Set([userID]),
             likeUserIDs: Set(),
@@ -114,6 +165,21 @@ final class MockDataStore: ObservableObject {
             shareCount: 0
         )
         events.insert(newEvent, at: 0) // Add to beginning
+    }
+
+    func createLostItem(title: String, description: String, location: String, isFound: Bool) {
+        guard let userID = currentUser?.id else { return }
+        let newItem = LostItem(
+            id: UUID(),
+            title: title,
+            description: description,
+            date: Date(),
+            location: location,
+            imageName: isFound ? "checkmark.seal.fill" : "magnifyingglass", // simplified mock image
+            isFound: isFound,
+            posterID: userID
+        )
+        lostItems.insert(newItem, at: 0)
     }
 
     func joinStudyGroup(_ id: UUID) {
@@ -168,9 +234,9 @@ private extension MockDataStore {
     static func makeSampleEvents(users: [User]) -> [Event] {
         let now = Date()
         return [
-            Event(id: UUID(), title: "AI Club Hack Night", description: "48-hour hackathon focused on accessibility and AI for good.", date: Calendar.current.date(byAdding: .day, value: 2, to: now)!, category: .academic, interestedUserIDs: Set([users[0].id]), likeUserIDs: Set([users[1].id]), commentIDs: [], shareCount: 3),
-            Event(id: UUID(), title: "Campus 5K Fun Run", description: "Join the annual charity run across campus.", date: Calendar.current.date(byAdding: .day, value: 5, to: now)!, category: .sports, interestedUserIDs: Set([users[2].id]), likeUserIDs: Set(), commentIDs: [], shareCount: 1),
-            Event(id: UUID(), title: "Design Critique Circle", description: "Weekly design review with peers.", date: Calendar.current.date(byAdding: .day, value: 1, to: now)!, category: .social, interestedUserIDs: Set(), likeUserIDs: Set(), commentIDs: [], shareCount: 0)
+            Event(id: UUID(), title: "AI Club Hack Night", description: "48-hour hackathon focused on accessibility and AI for good.", date: Calendar.current.date(byAdding: .day, value: 2, to: now)!, location: "Innovation Hub", maxCapacity: 50, category: .academic, interestedUserIDs: Set([users[0].id]), likeUserIDs: Set([users[1].id]), commentIDs: [], shareCount: 3),
+            Event(id: UUID(), title: "Campus 5K Fun Run", description: "Join the annual charity run across campus.", date: Calendar.current.date(byAdding: .day, value: 5, to: now)!, location: "Main Quad", maxCapacity: 200, category: .sports, interestedUserIDs: Set([users[2].id]), likeUserIDs: Set(), commentIDs: [], shareCount: 1),
+            Event(id: UUID(), title: "Design Critique Circle", description: "Weekly design review with peers.", date: Calendar.current.date(byAdding: .day, value: 1, to: now)!, location: "Art Building Rm 304", maxCapacity: 15, category: .social, interestedUserIDs: Set(), likeUserIDs: Set(), commentIDs: [], shareCount: 0)
         ]
     }
 

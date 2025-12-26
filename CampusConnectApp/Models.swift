@@ -24,6 +24,8 @@ struct Event: Identifiable, Equatable {
     var title: String
     var description: String
     var date: Date
+    var location: String
+    var maxCapacity: Int
     var category: EventCategory
     var interestedUserIDs: Set<UUID>
     var likeUserIDs: Set<UUID>
