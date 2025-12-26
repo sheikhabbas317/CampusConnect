@@ -108,7 +108,7 @@ enum EventCategory: String, CaseIterable, Identifiable {
     }
 }
 
-struct StudyGroup: Identifiable, Equatable {
+struct StudyGroup: Identifiable, Equatable, Hashable {
     let id: UUID
     var subject: String
     var moduleCode: String

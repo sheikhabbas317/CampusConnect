@@ -815,9 +815,10 @@ struct CommentRow: View {
 struct StudyGroupsView: View {
     @EnvironmentObject private var store: MockDataStore
     @State private var searchText = ""
+    @State private var path: [StudyGroup] = []
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ZStack {
                 AppTheme.background.ignoresSafeArea()
                 if filteredGroups.isEmpty {
@@ -839,7 +840,10 @@ struct StudyGroupsView: View {
                     List {
                         ForEach(filteredGroups) { group in
                             StudyGroupCard(group: group, isMember: isMember(of: group)) {
-                                store.joinStudyGroup(group.id)
+                                if !isMember(of: group) {
+                                    store.joinStudyGroup(group.id)
+                                }
+                                path.append(group)
                             }
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
@@ -857,6 +861,9 @@ struct StudyGroupsView: View {
                 placement: .navigationBarDrawer(displayMode: .automatic),
                 prompt: "Search by subject or module"
             )
+            .navigationDestination(for: StudyGroup.self) { group in
+                GroupChatView(group: group)
+            }
         }
     }
 
@@ -945,9 +952,9 @@ struct JoinButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: AppTheme.Spacing.xs) {
-                Image(systemName: isMember ? "checkmark.circle.fill" : "plus.circle.fill")
+                Image(systemName: isMember ? "bubble.left.and.bubble.right.fill" : "plus.circle.fill")
                     .font(AppTheme.Typography.footnote)
-                Text(isMember ? "Joined" : "Join Group")
+                Text(isMember ? "Open Chat" : "Join Group")
                     .font(AppTheme.Typography.footnoteBold)
             }
             .foregroundStyle(isMember ? AppTheme.primary : .white)
