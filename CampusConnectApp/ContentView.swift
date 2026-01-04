@@ -48,23 +48,94 @@ struct AuthView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Professional Animated Background
+                // Enhanced Professional Animated Background
                 GeometryReader { proxy in
                     ZStack {
-                        AppTheme.background.ignoresSafeArea()
+                        // Base gradient background
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "E0E7FF"), // Indigo 100
+                                Color(hex: "DBEAFE"), // Blue 100
+                                Color(hex: "F0F9FF"), // Sky 50
+                                Color(hex: "FAFBFC"), // Almost white
+                                AppTheme.background
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .ignoresSafeArea()
                         
-                        // Decorative Blobs
+                        // Enhanced Decorative Blobs with Radial Gradients
                         Circle()
-                            .fill(AppTheme.primary.opacity(0.1))
-                            .frame(width: 300, height: 300)
-                            .blur(radius: 60)
-                            .offset(x: -100, y: -150)
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        AppTheme.primary.opacity(0.18),
+                                        AppTheme.primary.opacity(0.08),
+                                        AppTheme.primary.opacity(0.03),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 60,
+                                    endRadius: 280
+                                )
+                            )
+                            .frame(width: 450, height: 450)
+                            .blur(radius: 90)
+                            .offset(x: -proxy.size.width * 0.25, y: -proxy.size.height * 0.2)
                         
                         Circle()
-                            .fill(AppTheme.secondary.opacity(0.1))
-                            .frame(width: 300, height: 300)
-                            .blur(radius: 60)
-                            .offset(x: 100, y: 150)
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        AppTheme.secondary.opacity(0.16),
+                                        AppTheme.secondary.opacity(0.07),
+                                        AppTheme.secondary.opacity(0.02),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 55,
+                                    endRadius: 270
+                                )
+                            )
+                            .frame(width: 420, height: 420)
+                            .blur(radius: 85)
+                            .offset(x: proxy.size.width * 0.35, y: proxy.size.height * 0.6)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "8B5CF6").opacity(0.14), // Violet 500
+                                        Color(hex: "8B5CF6").opacity(0.06),
+                                        Color(hex: "8B5CF6").opacity(0.02),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 50,
+                                    endRadius: 260
+                                )
+                            )
+                            .frame(width: 400, height: 400)
+                            .blur(radius: 80)
+                            .offset(x: proxy.size.width * 0.7, y: proxy.size.height * 0.1)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "EC4899").opacity(0.1), // Pink 500
+                                        Color(hex: "EC4899").opacity(0.04),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 45,
+                                    endRadius: 240
+                                )
+                            )
+                            .frame(width: 380, height: 380)
+                            .blur(radius: 75)
+                            .offset(x: proxy.size.width * 0.15, y: proxy.size.height * 0.75)
                     }
                 }
                 .ignoresSafeArea()
@@ -88,7 +159,7 @@ struct AuthView: View {
                                 Text(isRegister ? "Connect with your classmates today" : "Sign in to continue your journey")
                                     .font(AppTheme.Typography.body)
                                     .foregroundStyle(AppTheme.textSecondary)
-                                    .multilineTextAlignment(.center)
+                                .multilineTextAlignment(.center)
                                     .padding(.horizontal, AppTheme.Spacing.lg)
                             }
                         }
@@ -232,7 +303,7 @@ struct AuthView: View {
                                         Image(systemName: "calendar")
                                             .foregroundStyle(AppTheme.primary)
                                             .frame(width: 20)
-                                        Text("Year: \(year)")
+                                    Text("Year: \(year)")
                                             .font(.system(size: 15))
                                             .foregroundStyle(Color(red: 0.2, green: 0.2, blue: 0.2))
                                         Spacer()
@@ -268,13 +339,13 @@ struct AuthView: View {
                                     text: $password,
                                     showForgotPassword: !isRegister
                                 )
-                                
-                                if let message = validationMessage {
+
+                            if let message = validationMessage {
                                     HStack(spacing: AppTheme.Spacing.xs) {
                                         Image(systemName: "exclamationmark.circle.fill")
                                             .font(.system(size: 12))
                                             .foregroundStyle(AppTheme.error)
-                                        Text(message)
+                                Text(message)
                                             .font(.system(size: 13))
                                             .foregroundStyle(AppTheme.error)
                                     }
@@ -494,7 +565,7 @@ private struct ModernInputField: View {
     let icon: String
     let placeholder: String
     @Binding var text: String
-    
+
     var body: some View {
         HStack(spacing: AppTheme.Spacing.md) {
             Image(systemName: icon)

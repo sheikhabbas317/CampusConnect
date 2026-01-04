@@ -51,8 +51,66 @@ struct EventFeedView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Professional Background with Color Theme
-                backgroundGradient.ignoresSafeArea()
+                // Enhanced Professional Background with Animated Effects
+                GeometryReader { proxy in
+                    ZStack {
+                        // Base gradient background
+                        backgroundGradient.ignoresSafeArea()
+                        
+                        // Animated decorative blobs
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        (selectedCategory?.color ?? AppTheme.primary).opacity(0.12),
+                                        (selectedCategory?.color ?? AppTheme.primary).opacity(0.05),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 50,
+                                    endRadius: 250
+                                )
+                            )
+                            .frame(width: 400, height: 400)
+                            .blur(radius: 80)
+                            .offset(x: -proxy.size.width * 0.25, y: -proxy.size.height * 0.15)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        AppTheme.secondary.opacity(0.1),
+                                        AppTheme.secondary.opacity(0.04),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 50,
+                                    endRadius: 250
+                                )
+                            )
+                            .frame(width: 350, height: 350)
+                            .blur(radius: 70)
+                            .offset(x: proxy.size.width * 0.35, y: proxy.size.height * 0.7)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "8B5CF6").opacity(0.08),
+                                        Color(hex: "8B5CF6").opacity(0.03),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 40,
+                                    endRadius: 200
+                                )
+                            )
+                            .frame(width: 300, height: 300)
+                            .blur(radius: 60)
+                            .offset(x: proxy.size.width * 0.75, y: proxy.size.height * 0.2)
+                    }
+                }
+                .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Category Filter Chips with Color Themes
@@ -83,7 +141,7 @@ struct EventFeedView: View {
                             .frame(height: 12)
                         }
                         
-                        ScrollView(.horizontal, showsIndicators: false) {
+                    ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: AppTheme.Spacing.sm) {
                                 categoryChip(
                                     label: "All",
@@ -92,10 +150,10 @@ struct EventFeedView: View {
                                     active: selectedCategory == nil
                                 ) {
                                     withAnimation(.spring(response: 0.3)) {
-                                        selectedCategory = nil
+                                selectedCategory = nil
                                     }
-                                }
-                                ForEach(EventCategory.allCases) { category in
+                            }
+                            ForEach(EventCategory.allCases) { category in
                                     categoryChip(
                                         label: category.label,
                                         icon: category.icon,
@@ -103,10 +161,10 @@ struct EventFeedView: View {
                                         active: selectedCategory == category
                                     ) {
                                         withAnimation(.spring(response: 0.3)) {
-                                            selectedCategory = category
-                                        }
-                                    }
+                                    selectedCategory = category
                                 }
+                            }
+                        }
                             }
                             .padding(.horizontal, AppTheme.Spacing.lg)
                             .padding(.vertical, AppTheme.Spacing.md)
@@ -159,20 +217,20 @@ struct EventFeedView: View {
                             ForEach(filteredEvents) { event in
                                 EventCard(
                                     event: event,
-                                    likeAction: { store.toggleLike(for: event.id) },
-                                    interestAction: { store.toggleInterest(for: event.id) },
-                                    commentAction: {
-                                        selectedEvent = event
-                                        showingCommentSheet = true
-                                    },
-                                    shareAction: {
-                                        store.incrementShare(for: event.id)
-                                        shareMessage = "Shared \(event.title)"
-                                        showingShareAlert = true
+                                          likeAction: { store.toggleLike(for: event.id) },
+                                          interestAction: { store.toggleInterest(for: event.id) },
+                                          commentAction: {
+                                    selectedEvent = event
+                                    showingCommentSheet = true
+                                },
+                                          shareAction: {
+                                    store.incrementShare(for: event.id)
+                                    shareMessage = "Shared \(event.title)"
+                                    showingShareAlert = true
                                     }
                                 )
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
+                                    .listRowSeparator(.hidden)
+                                    .listRowBackground(Color.clear)
                                 .listRowInsets(EdgeInsets(top: AppTheme.Spacing.sm, leading: AppTheme.Spacing.lg, bottom: AppTheme.Spacing.sm, trailing: AppTheme.Spacing.lg))
                             }
                         }
@@ -220,7 +278,7 @@ struct EventFeedView: View {
             HStack(spacing: AppTheme.Spacing.xs) {
                 Image(systemName: icon)
                     .font(.system(size: 12, weight: .semibold))
-                Text(label)
+            Text(label)
             }
             .font(AppTheme.Typography.footnoteBold)
             .foregroundStyle(active ? .white : color)
@@ -509,27 +567,27 @@ struct EventCard: View {
                     }
                     
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                        Text(event.title)
+                Text(event.title)
                             .font(AppTheme.Typography.headline)
                             .foregroundStyle(AppTheme.textPrimary)
                             .multilineTextAlignment(.leading)
                         
-                        Text(event.category.label)
+                Text(event.category.label)
                             .font(AppTheme.Typography.caption)
                             .fontWeight(.bold)
                             .foregroundStyle(.white)
                             .padding(.horizontal, AppTheme.Spacing.sm)
-                            .padding(.vertical, 4)
+                    .padding(.vertical, 4)
                             .background(event.category.gradient)
-                            .clipShape(Capsule())
+                    .clipShape(Capsule())
                             .shadow(color: event.category.color.opacity(0.25), radius: 3, x: 0, y: 1)
-                    }
+            }
                     
                     Spacer()
                 }
             
                 // Description
-                Text(event.description)
+            Text(event.description)
                     .font(AppTheme.Typography.body)
                     .foregroundStyle(AppTheme.textSecondary)
                     .lineLimit(3)
@@ -538,7 +596,7 @@ struct EventCard: View {
                 // Date and Interest Button
                 HStack(spacing: AppTheme.Spacing.md) {
                     HStack(spacing: AppTheme.Spacing.xs) {
-                        Image(systemName: "calendar")
+                    Image(systemName: "calendar")
                             .font(.system(size: 14))
                             .foregroundStyle(event.category.color)
                         Text(event.date, style: .date)
@@ -549,12 +607,12 @@ struct EventCard: View {
                         Text(event.date, style: .time)
                             .font(AppTheme.Typography.caption)
                             .foregroundStyle(AppTheme.textTertiary)
-                    }
-                    Spacer()
-                    interestButton
                 }
+                Spacer()
+                interestButton
+            }
                 
-                Divider()
+            Divider()
                     .background(event.category.color.opacity(0.2))
                     .padding(.vertical, AppTheme.Spacing.xs)
                 
@@ -574,7 +632,7 @@ struct EventCard: View {
                         action: commentAction
                     )
                     
-                    ShareLink(item: shareText, subject: Text(event.title)) {
+                ShareLink(item: shareText, subject: Text(event.title)) {
                         HStack(spacing: AppTheme.Spacing.xs) {
                             Image(systemName: "arrowshape.turn.up.forward")
                                 .font(AppTheme.Typography.footnote)
@@ -582,8 +640,8 @@ struct EventCard: View {
                                 .font(AppTheme.Typography.footnote)
                         }
                         .foregroundStyle(AppTheme.textSecondary)
-                    }
-                    .simultaneousGesture(TapGesture().onEnded { shareAction() })
+                }
+                .simultaneousGesture(TapGesture().onEnded { shareAction() })
                     
                     Spacer()
                 }
@@ -637,7 +695,7 @@ struct EventCard: View {
             HStack(spacing: AppTheme.Spacing.xs) {
                 Image(systemName: isInterested ? "checkmark.circle.fill" : "circle")
                     .font(AppTheme.Typography.caption)
-                Text(isInterested ? "Interested" : "Interested?")
+            Text(isInterested ? "Interested" : "Interested?")
                     .font(AppTheme.Typography.footnoteBold)
             }
             .foregroundStyle(isInterested ? .white : event.category.color)
@@ -656,7 +714,7 @@ struct EventCard: View {
                 Capsule()
                     .stroke(isInterested ? Color.clear : event.category.color.opacity(0.3), lineWidth: 1.5)
             )
-            .clipShape(Capsule())
+                .clipShape(Capsule())
             .shadow(color: isInterested ? event.category.color.opacity(0.3) : Color.clear, radius: 4, x: 0, y: 2)
         }
     }
@@ -699,7 +757,7 @@ struct CommentSheet: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                Text("Comments")
+            Text("Comments")
                     .font(AppTheme.Typography.title3)
                     .foregroundStyle(AppTheme.textPrimary)
                 Text(event.title)
@@ -730,11 +788,11 @@ struct CommentSheet: View {
                         .frame(maxWidth: .infinity)
                         .padding(.top, AppTheme.Spacing.xl)
                     } else {
-                        ForEach(eventComments) { comment in
-                            CommentRow(comment: comment)
-                        }
+                    ForEach(eventComments) { comment in
+                        CommentRow(comment: comment)
                     }
                 }
+            }
                 .padding(AppTheme.Spacing.lg)
             }
             
@@ -790,20 +848,20 @@ struct CommentRow: View {
                     .frame(width: 32, height: 32)
                 
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    HStack {
-                        Text(author?.name ?? "User")
+            HStack {
+                Text(author?.name ?? "User")
                             .font(AppTheme.Typography.subheadline)
                             .foregroundStyle(AppTheme.textPrimary)
-                        Spacer()
-                        Text(comment.createdAt, style: .time)
+                Spacer()
+                Text(comment.createdAt, style: .time)
                             .font(AppTheme.Typography.caption)
                             .foregroundStyle(AppTheme.textTertiary)
-                    }
-                    Text(comment.body)
+            }
+            Text(comment.body)
                         .font(AppTheme.Typography.body)
                         .foregroundStyle(AppTheme.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                }
+        }
             }
         }
         .padding(AppTheme.Spacing.md)
@@ -820,7 +878,77 @@ struct StudyGroupsView: View {
     var body: some View {
         NavigationStack(path: $path) {
             ZStack {
-                AppTheme.background.ignoresSafeArea()
+                // Beautiful Study Groups Background with Gradient
+                GeometryReader { proxy in
+                    ZStack {
+                        // Base gradient - Academic theme (blue/purple)
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "E0E7FF"), // Indigo 100
+                                Color(hex: "F5F3FF"), // Violet 50
+                                Color(hex: "FAFBFC"), // Almost white
+                                AppTheme.background
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .ignoresSafeArea()
+                        
+                        // Animated decorative blobs
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "6366F1").opacity(0.15), // Indigo 500
+                                        Color(hex: "6366F1").opacity(0.06),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 60,
+                                    endRadius: 280
+                                )
+                            )
+                            .frame(width: 450, height: 450)
+                            .blur(radius: 90)
+                            .offset(x: -proxy.size.width * 0.2, y: -proxy.size.height * 0.1)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "8B5CF6").opacity(0.12), // Violet 500
+                                        Color(hex: "8B5CF6").opacity(0.05),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 50,
+                                    endRadius: 260
+                                )
+                            )
+                            .frame(width: 400, height: 400)
+                            .blur(radius: 85)
+                            .offset(x: proxy.size.width * 0.4, y: proxy.size.height * 0.6)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "06B6D4").opacity(0.1), // Cyan 500
+                                        Color(hex: "06B6D4").opacity(0.04),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 45,
+                                    endRadius: 240
+                                )
+                            )
+                            .frame(width: 380, height: 380)
+                            .blur(radius: 75)
+                            .offset(x: proxy.size.width * 0.8, y: proxy.size.height * 0.15)
+                    }
+                }
+                .ignoresSafeArea()
+                
                 if filteredGroups.isEmpty {
                     VStack(spacing: AppTheme.Spacing.lg) {
                         Image(systemName: "person.3.fill")
@@ -837,8 +965,8 @@ struct StudyGroupsView: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    List {
-                        ForEach(filteredGroups) { group in
+                List {
+                    ForEach(filteredGroups) { group in
                             StudyGroupCard(group: group, isMember: isMember(of: group)) {
                                 if !isMember(of: group) {
                                     store.joinStudyGroup(group.id)
@@ -846,12 +974,12 @@ struct StudyGroupsView: View {
                                 path.append(group)
                             }
                             .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+                        .listRowBackground(Color.clear)
                             .listRowInsets(EdgeInsets(top: AppTheme.Spacing.sm, leading: AppTheme.Spacing.lg, bottom: AppTheme.Spacing.sm, trailing: AppTheme.Spacing.lg))
-                        }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
                 }
             }
             .navigationTitle("Study Groups")
@@ -965,7 +1093,7 @@ struct JoinButton: View {
                 Capsule()
                     .stroke(isMember ? AppTheme.primary.opacity(0.3) : Color.clear, lineWidth: 1)
             )
-            .clipShape(Capsule())
+                .clipShape(Capsule())
         }
     }
 }
@@ -979,7 +1107,77 @@ struct LostFoundView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                AppTheme.background.ignoresSafeArea()
+                // Beautiful Lost & Found Background with Warm Gradient
+                GeometryReader { proxy in
+                    ZStack {
+                        // Base gradient - Warm theme (amber/orange)
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "FEF3C7"), // Amber 100
+                                Color(hex: "FFEDD5"), // Orange 100
+                                Color(hex: "FAFBFC"), // Almost white
+                                AppTheme.background
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .ignoresSafeArea()
+                        
+                        // Animated decorative blobs
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "F59E0B").opacity(0.14), // Amber 500
+                                        Color(hex: "F59E0B").opacity(0.06),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 55,
+                                    endRadius: 270
+                                )
+                            )
+                            .frame(width: 420, height: 420)
+                            .blur(radius: 88)
+                            .offset(x: -proxy.size.width * 0.15, y: -proxy.size.height * 0.12)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "F97316").opacity(0.12), // Orange 500
+                                        Color(hex: "F97316").opacity(0.05),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 50,
+                                    endRadius: 250
+                                )
+                            )
+                            .frame(width: 380, height: 380)
+                            .blur(radius: 80)
+                            .offset(x: proxy.size.width * 0.45, y: proxy.size.height * 0.65)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "10B981").opacity(0.1), // Emerald 500 (for found items)
+                                        Color(hex: "10B981").opacity(0.04),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 40,
+                                    endRadius: 220
+                                )
+                            )
+                            .frame(width: 360, height: 360)
+                            .blur(radius: 70)
+                            .offset(x: proxy.size.width * 0.75, y: proxy.size.height * 0.2)
+                    }
+                }
+                .ignoresSafeArea()
+                
                 if filteredItems.isEmpty {
                     VStack(spacing: AppTheme.Spacing.lg) {
                         Image(systemName: "magnifyingglass")
@@ -1017,12 +1215,12 @@ struct LostFoundView: View {
                         ForEach(filteredItems) { item in
                             LostItemCard(item: item)
                                 .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
+                        .listRowBackground(Color.clear)
                                 .listRowInsets(EdgeInsets(top: AppTheme.Spacing.sm, leading: AppTheme.Spacing.lg, bottom: AppTheme.Spacing.sm, trailing: AppTheme.Spacing.lg))
-                        }
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
                 }
             }
             .navigationTitle("Lost & Found")
@@ -1030,11 +1228,11 @@ struct LostFoundView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: AppTheme.Spacing.sm) {
-                        Picker("Filter", selection: $filterLostOnly) {
-                            Text("All").tag(false)
+                    Picker("Filter", selection: $filterLostOnly) {
+                        Text("All").tag(false)
                             Text("Lost").tag(true)
-                        }
-                        .pickerStyle(.segmented)
+                    }
+                    .pickerStyle(.segmented)
                         .frame(width: 120)
                         
                         Button {
@@ -1289,27 +1487,96 @@ struct MessagesView: View {
     var body: some View {
         NavigationStack(path: $path) {
             ZStack {
-                AppTheme.background.ignoresSafeArea()
+                // Beautiful Messages Background with Soft Gradient
+                GeometryReader { proxy in
+                    ZStack {
+                        // Base gradient - Communication theme (cyan/blue)
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "E0F2FE"), // Sky 100
+                                Color(hex: "F0F9FF"), // Sky 50
+                                Color(hex: "FAFBFC"), // Almost white
+                                AppTheme.background
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .ignoresSafeArea()
+                        
+                        // Animated decorative blobs
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "0EA5E9").opacity(0.13), // Sky 500
+                                        Color(hex: "0EA5E9").opacity(0.05),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 58,
+                                    endRadius: 275
+                                )
+                            )
+                            .frame(width: 440, height: 440)
+                            .blur(radius: 92)
+                            .offset(x: -proxy.size.width * 0.22, y: -proxy.size.height * 0.08)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "06B6D4").opacity(0.11), // Cyan 500
+                                        Color(hex: "06B6D4").opacity(0.04),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 52,
+                                    endRadius: 265
+                                )
+                            )
+                            .frame(width: 410, height: 410)
+                            .blur(radius: 87)
+                            .offset(x: proxy.size.width * 0.38, y: proxy.size.height * 0.62)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "6366F1").opacity(0.09), // Indigo 500
+                                        Color(hex: "6366F1").opacity(0.03),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 42,
+                                    endRadius: 230
+                                )
+                            )
+                            .frame(width: 370, height: 370)
+                            .blur(radius: 72)
+                            .offset(x: proxy.size.width * 0.78, y: proxy.size.height * 0.18)
+                    }
+                }
+                .ignoresSafeArea()
                 
                 if userThreads.isEmpty {
                     VStack(spacing: AppTheme.Spacing.lg) {
-                        Image(systemName: "bubble.left.and.bubble.right")
+                    Image(systemName: "bubble.left.and.bubble.right")
                             .font(.system(size: 48))
                             .foregroundStyle(AppTheme.textTertiary)
-                        Text("No conversations yet")
-                            .font(AppTheme.Typography.headline)
+                    Text("No conversations yet")
+                        .font(AppTheme.Typography.headline)
                             .foregroundStyle(AppTheme.textPrimary)
-                        Text("Start a new chat from here or from a profile.")
-                            .font(AppTheme.Typography.footnote)
+                    Text("Start a new chat from here or from a profile.")
+                        .font(AppTheme.Typography.footnote)
                             .foregroundStyle(AppTheme.textSecondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, AppTheme.Spacing.lg)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    List {
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                List {
                         ForEach(userThreads) { thread in
-                            NavigationLink(value: thread) {
+                        NavigationLink(value: thread) {
                                 MessageThreadRow(
                                     title: threadTitle(for: thread),
                                     preview: lastMessagePreview(for: thread),
@@ -1318,39 +1585,39 @@ struct MessagesView: View {
                             }
                             .listRowSeparator(.hidden)
                             .listRowInsets(EdgeInsets(top: AppTheme.Spacing.sm, leading: AppTheme.Spacing.lg, bottom: AppTheme.Spacing.sm, trailing: AppTheme.Spacing.lg))
-                            .listRowBackground(Color.clear)
-                        }
+                        .listRowBackground(Color.clear)
                     }
-                    .listStyle(.plain)
-                    .scrollContentBackground(.hidden)
                 }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
-            .navigationDestination(for: MessageThread.self) { thread in
-                ChatDetailView(thread: thread)
+        }
+        .navigationDestination(for: MessageThread.self) { thread in
+            ChatDetailView(thread: thread)
                     .environmentObject(store)
-            }
-            .navigationTitle("Messages")
+        }
+        .navigationTitle("Messages")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showingNewChat = true
-                    } label: {
-                        Image(systemName: "square.and.pencil")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    showingNewChat = true
+                } label: {
+                    Image(systemName: "square.and.pencil")
                             .font(.title3)
                             .foregroundStyle(AppTheme.primary)
-                    }
-                    .accessibilityLabel("Start new chat")
                 }
+                .accessibilityLabel("Start new chat")
             }
-            .sheet(isPresented: $showingNewChat) {
-                NewChatSheet { user in
-                    if let thread = store.createOrFetchThread(with: user.id) {
+        }
+        .sheet(isPresented: $showingNewChat) {
+            NewChatSheet { user in
+                if let thread = store.createOrFetchThread(with: user.id) {
                         showingNewChat = false
                         // Use a slight delay to ensure smooth transition after sheet dismissal
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             if !path.contains(thread) {
-                                path.append(thread)
+                    path.append(thread)
                             }
                         }
                     }
@@ -1500,7 +1767,7 @@ struct ChatDetailView: View {
         VStack(spacing: 0) {
             // Messages List
             ScrollViewReader { proxy in
-                ScrollView {
+            ScrollView {
                     LazyVStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                         if threadMessages.isEmpty {
                             VStack(spacing: AppTheme.Spacing.md) {
@@ -1517,8 +1784,8 @@ struct ChatDetailView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.top, AppTheme.Spacing.xl)
                         } else {
-                            ForEach(threadMessages) { message in
-                                messageBubble(for: message)
+                    ForEach(threadMessages) { message in
+                        messageBubble(for: message)
                                     .id(message.id)
                             }
                         }
@@ -1534,7 +1801,7 @@ struct ChatDetailView: View {
                         }
                     }
                 }
-                .onChange(of: threadMessages.count) {
+                .onChange(of: threadMessages.count) { oldValue, newValue in
                     if let lastMessage = threadMessages.last {
                         withAnimation {
                             proxy.scrollTo(lastMessage.id, anchor: .bottom)
@@ -1619,128 +1886,200 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: AppTheme.Spacing.xl) {
-                    if let user = store.currentUser {
-                        // Modern Profile Header
-                        ZStack(alignment: .bottom) {
-                            // Background Cover
-                            LinearGradient(
-                                colors: [AppTheme.primary, AppTheme.primaryLight],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+            ZStack {
+                // Beautiful Profile Background with Personal Gradient
+                GeometryReader { proxy in
+                    ZStack {
+                        // Base gradient - Personal theme (purple/pink)
+                        LinearGradient(
+                            colors: [
+                                Color(hex: "F3E8FF"), // Purple 100
+                                Color(hex: "FCE7F3"), // Pink 100
+                                Color(hex: "FAFBFC"), // Almost white
+                                AppTheme.background
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                        .ignoresSafeArea()
+                        
+                        // Animated decorative blobs
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "8B5CF6").opacity(0.12), // Violet 500
+                                        Color(hex: "8B5CF6").opacity(0.05),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 56,
+                                    endRadius: 272
+                                )
                             )
-                            .frame(height: 140)
-                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.lg, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
-                                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                            .frame(width: 430, height: 430)
+                            .blur(radius: 90)
+                            .offset(x: -proxy.size.width * 0.18, y: -proxy.size.height * 0.1)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "EC4899").opacity(0.11), // Pink 500
+                                        Color(hex: "EC4899").opacity(0.04),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 48,
+                                    endRadius: 255
+                                )
                             )
-                            .shadow(color: AppTheme.primary.opacity(0.3), radius: 10, x: 0, y: 5)
-                            
-                            // Avatar Overlay
-                            ZStack {
-                                Circle()
-                                    .fill(AppTheme.surface)
-                                    .frame(width: 108, height: 108)
-                                    .shadow(color: AppTheme.Shadow.md, radius: 4, x: 0, y: 2)
+                            .frame(width: 390, height: 390)
+                            .blur(radius: 82)
+                            .offset(x: proxy.size.width * 0.42, y: proxy.size.height * 0.68)
+                        
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color(hex: "6366F1").opacity(0.1), // Indigo 500
+                                        Color(hex: "6366F1").opacity(0.03),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 44,
+                                    endRadius: 235
+                                )
+                            )
+                            .frame(width: 375, height: 375)
+                            .blur(radius: 74)
+                            .offset(x: proxy.size.width * 0.76, y: proxy.size.height * 0.22)
+                    }
+                }
+                .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: AppTheme.Spacing.xl) {
+                if let user = store.currentUser {
+                            // Modern Profile Header
+                            ZStack(alignment: .bottom) {
+                                // Background Cover
+                                LinearGradient(
+                                    colors: [AppTheme.primary, AppTheme.primaryLight],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                                .frame(height: 140)
+                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.lg, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: AppTheme.Radius.lg)
+                                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                                )
+                                .shadow(color: AppTheme.primary.opacity(0.3), radius: 10, x: 0, y: 5)
                                 
-                                Image(systemName: user.avatarName)
-                                    .font(.system(size: 54))
-                                    .foregroundStyle(AppTheme.primary)
-                                    .frame(width: 100, height: 100)
-                                    .background(AppTheme.primary.opacity(0.1))
-                                    .clipShape(Circle())
-                            }
-                            .offset(y: 50)
-                        }
-                        .padding(.bottom, 50)
-                        
-                        // User Info
-                        VStack(spacing: AppTheme.Spacing.xs) {
-                            Text(user.name)
-                                .font(AppTheme.Typography.title2)
-                                .foregroundStyle(AppTheme.textPrimary)
-                            
-                            Text(user.email)
-                                .font(AppTheme.Typography.body)
-                                .foregroundStyle(AppTheme.textSecondary)
-                            
-                            HStack(spacing: AppTheme.Spacing.sm) {
-                                Label(user.course, systemImage: "book.fill")
-                                Text("•")
-                                Text("Year \(user.year)")
-                            }
-                            .font(AppTheme.Typography.subheadline)
-                            .foregroundStyle(AppTheme.textTertiary)
-                            .padding(.top, AppTheme.Spacing.xs)
-                        }
-                        
-                        // Stats Row
-                        HStack(spacing: AppTheme.Spacing.xl) {
-                            ProfileStat(value: "\(user.interests.count)", label: "Interests")
-                            Divider().frame(height: 30)
-                            ProfileStat(value: "\(store.threads.filter { $0.participantIDs.contains(user.id) }.count)", label: "Chats")
-                            Divider().frame(height: 30)
-                            ProfileStat(value: "\(store.events.filter { $0.interestedUserIDs.contains(user.id) }.count)", label: "Events")
-                        }
-                        .padding(.vertical, AppTheme.Spacing.md)
-                        .padding(.horizontal, AppTheme.Spacing.xl)
-                        .background(AppTheme.surface)
-                        .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
-                        .shadow(color: AppTheme.Shadow.sm, radius: 4, x: 0, y: 2)
-                        
-                        // Interests Section
-                        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-                            HStack {
-                                Label("Interests & Hobbies", systemImage: "star.fill")
-                                    .font(AppTheme.Typography.headline)
-                                    .foregroundStyle(AppTheme.textPrimary)
-                                Spacer()
-                                Button {
-                                    showingHobbySheet = true
-                                } label: {
-                                    Image(systemName: "pencil.circle.fill")
-                                        .font(.title3)
+                                // Avatar Overlay
+                                ZStack {
+                                    Circle()
+                                        .fill(AppTheme.surface)
+                                        .frame(width: 108, height: 108)
+                                        .shadow(color: AppTheme.Shadow.md, radius: 4, x: 0, y: 2)
+                                    
+                        Image(systemName: user.avatarName)
+                                        .font(.system(size: 54))
                                         .foregroundStyle(AppTheme.primary)
+                                        .frame(width: 100, height: 100)
+                                        .background(AppTheme.primary.opacity(0.1))
+                                        .clipShape(Circle())
                                 }
+                                .offset(y: 50)
                             }
-                            FlexibleTagView(tags: user.interests)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .appCard(elevated: true)
-                        
-                        // Menu Options
-                        VStack(spacing: AppTheme.Spacing.md) {
-                            ProfileMenuButton(icon: "bubble.left.and.bubble.right.fill", title: "Message a Classmate", subtitle: "Start a new conversation") {
-                                showingNewChat = true
+                            .padding(.bottom, 50)
+                            
+                            // User Info
+                            VStack(spacing: AppTheme.Spacing.xs) {
+                        Text(user.name)
+                                    .font(AppTheme.Typography.title2)
+                                    .foregroundStyle(AppTheme.textPrimary)
+                                
+                        Text(user.email)
+                                    .font(AppTheme.Typography.body)
+                                    .foregroundStyle(AppTheme.textSecondary)
+                            
+                                HStack(spacing: AppTheme.Spacing.sm) {
+                                    Label(user.course, systemImage: "book.fill")
+                                    Text("•")
+                                    Text("Year \(user.year)")
+                                }
+                                .font(AppTheme.Typography.subheadline)
+                                .foregroundStyle(AppTheme.textTertiary)
+                                .padding(.top, AppTheme.Spacing.xs)
                             }
                             
-                            ProfileMenuButton(icon: "gearshape.fill", title: "Settings", subtitle: "Preferences & account") {
-                                showingSettings = true
+                            // Stats Row
+                            HStack(spacing: AppTheme.Spacing.xl) {
+                                ProfileStat(value: "\(user.interests.count)", label: "Interests")
+                                Divider().frame(height: 30)
+                                ProfileStat(value: "\(store.threads.filter { $0.participantIDs.contains(user.id) }.count)", label: "Chats")
+                                Divider().frame(height: 30)
+                                ProfileStat(value: "\(store.events.filter { $0.interestedUserIDs.contains(user.id) }.count)", label: "Events")
                             }
+                            .padding(.vertical, AppTheme.Spacing.md)
+                            .padding(.horizontal, AppTheme.Spacing.xl)
+                            .background(AppTheme.surface)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+                            .shadow(color: AppTheme.Shadow.sm, radius: 4, x: 0, y: 2)
                             
-                            Button {
-                                showingLogoutConfirmation = true
-                            } label: {
+                            // Interests Section
+                            VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                                 HStack {
-                                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                                        .font(.system(size: 16, weight: .semibold))
-                                    Text("Log Out")
+                                    Label("Interests & Hobbies", systemImage: "star.fill")
                                         .font(AppTheme.Typography.headline)
+                                        .foregroundStyle(AppTheme.textPrimary)
                                     Spacer()
+                                    Button {
+                                        showingHobbySheet = true
+                                    } label: {
+                                        Image(systemName: "pencil.circle.fill")
+                                            .font(.title3)
+                                            .foregroundStyle(AppTheme.primary)
+                                    }
                                 }
-                                .foregroundStyle(AppTheme.error)
-                                .padding(AppTheme.Spacing.md)
-                                .background(AppTheme.error.opacity(0.1))
-                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+                        FlexibleTagView(tags: user.interests)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                            .appCard(elevated: true)
+                            
+                            // Menu Options
+                            VStack(spacing: AppTheme.Spacing.md) {
+                                ProfileMenuButton(icon: "bubble.left.and.bubble.right.fill", title: "Message a Classmate", subtitle: "Start a new conversation") {
+                                    showingNewChat = true
+                                }
+                                
+                                ProfileMenuButton(icon: "gearshape.fill", title: "Settings", subtitle: "Preferences & account") {
+                                    showingSettings = true
+                                }
+                                
+                Button {
+                                    showingLogoutConfirmation = true
+                } label: {
+                                    HStack {
+                                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                                            .font(.system(size: 16, weight: .semibold))
+                                        Text("Log Out")
+                                            .font(AppTheme.Typography.headline)
+                                        Spacer()
+                                    }
+                                    .foregroundStyle(AppTheme.error)
+                                    .padding(AppTheme.Spacing.md)
+                                    .background(AppTheme.error.opacity(0.1))
+                                    .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.md))
+                                }
                             }
                         }
                     }
                 }
                 .padding(AppTheme.Spacing.lg)
             }
-            .background(AppTheme.background.ignoresSafeArea())
             .navigationTitle("Profile")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingNewChat) {
